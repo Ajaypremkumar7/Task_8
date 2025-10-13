@@ -27,7 +27,7 @@ public class EmailService {
         sendEmail(email, subject, text);
     }
 
-    // ==================== SEND ACCOUNT LOCK EMAIL ====================
+    // SEND ACCOUNT LOCK EMAIL 
     public void sendAccountLockEmail(String email, int lockMinutes) {
         String subject = "Account Locked";
         String text = "Your account has been locked due to multiple failed login attempts. "

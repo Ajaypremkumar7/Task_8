@@ -18,13 +18,13 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Dynamically assign role from User entity
+    
         return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
     }
 
     @Override
     public String getPassword() {
-        return user.getPassword(); // Must return encoded password
+        return user.getPassword(); 
     }
 
     @Override

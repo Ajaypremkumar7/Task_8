@@ -51,7 +51,7 @@ public class AuthService {
         return "refresh_token_" + new Random().nextInt(999999);
     }
 
-    // ==================== HELPER: CREATE OR UPDATE REFRESH TOKEN ====================
+    
     private RefreshToken createOrUpdateRefreshToken(User user, long expirySeconds) {
         String newTokenStr = generateToken();
         Optional<RefreshToken> existingTokenOpt = refreshTokenRepository.findByUser(user);
@@ -74,7 +74,7 @@ public class AuthService {
         return saved;
     }
 
-    // ==================== REGISTER ====================
+    // REGISTER 
     public User register(RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new CustomException("User with this email already exists.");
@@ -112,14 +112,14 @@ public class AuthService {
         return user;
     }
 
-    // ==================== LOGIN (CREDENTIALS) with 2FA and ACCOUNT LOCKOUT ====================
+    // LOGIN
     @Transactional(noRollbackFor = CustomException.class)
     public AuthResponse login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        // ====== CHECK ACCOUNT LOCK ======
+        
         if (user.isAccountLocked()) {
             if (user.getLockTime() != null && Instant.now().isAfter(user.getLockTime().plusSeconds(900))) { // 15 min lock
                 user.setAccountLocked(false);
@@ -140,21 +140,21 @@ public class AuthService {
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
 
-            // ====== RESET FAILED ATTEMPTS ON SUCCESS ======
+            
             user.setFailedLoginAttempts(0);
             userRepository.save(user);
 
         } catch (Exception e) {
-            // ====== INCREMENT FAILED ATTEMPTS ======
+            
             int attempts = user.getFailedLoginAttempts() + 1;
             user.setFailedLoginAttempts(attempts);
 
-            if (attempts >= 5) { // lock after 5 failed attempts
+            if (attempts >= 5) { 
                 user.setAccountLocked(true);
                 user.setLockTime(Instant.now());
-                // Send email notification
+                
                 try {
-                    emailService.sendAccountLockEmail(user.getEmail(), 15); // 15 minutes lock
+                    emailService.sendAccountLockEmail(user.getEmail(), 15); 
                 } catch (Exception ex) {
                     System.out.println("Failed to send account lock email: " + ex.getMessage());
                 }
@@ -177,17 +177,17 @@ public class AuthService {
         return generateTokens(user);
     }
 
-    // ==================== LOGOUT ====================
+    // LOGOUT 
     @Transactional
     public void logout(User user, String token) {
         User persistentUser = userRepository.findById(user.getId())
                 .orElseThrow(() -> new CustomException("User not found"));
 
-        // Remove refresh token
+        
         refreshTokenRepository.findByUser(persistentUser)
                 .ifPresent(refreshTokenRepository::delete);
 
-        // ------------------- BLACKLIST PROVIDED ACCESS TOKEN -------------------
+        
         if (token != null && !token.isEmpty()) {
             BlacklistedToken blacklistedToken = BlacklistedToken.builder()
                     .token(token)
@@ -197,7 +197,7 @@ public class AuthService {
         }
     }
 
-    // ==================== REFRESH TOKEN ====================
+    // REFRESH TOKEN 
     @Transactional
     public AuthResponse refreshToken(String refreshTokenStr) {
         RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenStr)
@@ -212,7 +212,7 @@ public class AuthService {
         return new AuthResponse(newAccessToken, refreshToken.getToken());
     }
 
-    // ==================== OAUTH2 LOGIN ====================
+    // OAUTH2 LOGIN 
     @Transactional
     public AuthResponse loginWithOAuth2(String email, String username) {
         User user = userRepository.findByEmail(email)
@@ -230,13 +230,12 @@ public class AuthService {
         return generateTokens(user);
     }
 
-    // ==================== GET USER BY EMAIL ====================
+    
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomException("User not found with email: " + email));
     }
 
-    // ==================== AUTHENTICATE USER ====================
     public User authenticateUser(String email, String password) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(email, password)
@@ -246,7 +245,6 @@ public class AuthService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
-    // ==================== GENERATE TOKENS ====================
     public AuthResponse generateTokens(User user) {
         System.out.println("Generating tokens for user: " + user.getEmail());
         String accessToken = jwtService.generateToken(user);
@@ -256,7 +254,6 @@ public class AuthService {
         return new AuthResponse(accessToken, refreshToken.getToken());
     }
 
-    // ==================== GET CURRENT AUTHENTICATED USER ====================
     public User getCurrentUser() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) return null;
@@ -277,22 +274,19 @@ public class AuthService {
         return null;
     }
 
-    // ==================== GET EMAIL SERVICE ====================
     public EmailService getEmailService() {
         return emailService;
     }
 
-    // ==================== VERIFY ACCOUNT ====================
+    //  VERIFY ACCOUNT
     public Optional<VerificationToken> getVerificationTokenByUser(User user) {
         return verificationTokenRepository.findByUser(user);
     }
 
-    // ==================== HELPER: VERIFY 2FA CODE ====================
     public boolean verify2FACode(User user, int totpCode) {
         return twoFactorAuthService.verifyCode(user, String.valueOf(totpCode));
     }
 
-    // ==================== HELPER: GET USER FROM TOKEN ====================
     public User getCurrentUserFromToken(String token) {
         String email = jwtService.extractUsername(token);
         return userRepository.findByEmail(email).orElse(null);

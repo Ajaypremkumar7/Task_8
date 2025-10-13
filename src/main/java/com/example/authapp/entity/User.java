@@ -40,7 +40,6 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private RefreshToken refreshToken;
 
-    // ==================== ACCOUNT LOCKOUT FIELDS ====================
     @Builder.Default
     private int failedLoginAttempts = 0;
 

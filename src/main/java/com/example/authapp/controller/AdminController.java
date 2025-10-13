@@ -17,7 +17,7 @@ public class AdminController {
 
     private final AdminService adminService;
 
-    // ---------------- GET ALL USERS ----------------
+    // GET ALL USERS
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/users")
     public ResponseEntity<List<UserResponseDto>> getAllUsers() {
@@ -33,7 +33,7 @@ public class AdminController {
         return ResponseEntity.ok(users);
     }
 
-    // ---------------- REVOKE USER SESSIONS ----------------
+    // REVOKE USER SESSIONS
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/sessions/revoke")
     public ResponseEntity<String> revokeSessions(@RequestBody RevokeSessionRequest request) {
@@ -41,7 +41,6 @@ public class AdminController {
         return ResponseEntity.ok("User sessions revoked successfully");
     }
 
-    // ---------------- REQUEST DTO ----------------
     public static class RevokeSessionRequest {
         private Long userId;
 

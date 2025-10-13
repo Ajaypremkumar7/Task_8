@@ -29,7 +29,7 @@ public class AuthController {
     private final VerificationTokenRepository verificationTokenRepository; 
     private final PasswordService passwordService; 
 
-    // ---------------- Register ----------------
+    // Register
     @PostMapping("/register")
     public ResponseEntity<UserResponseDto> register(@RequestBody RegisterRequest request) {
         User user = authService.register(request);
@@ -42,7 +42,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
-    // ---------------- Email Verification ----------------
+    // Email Verification
     @GetMapping("/verify")
     public ResponseEntity<String> verifyEmail(@RequestParam("token") String token) {
         VerificationToken verificationToken = verificationTokenRepository.findByToken(token)
@@ -56,7 +56,7 @@ public class AuthController {
         return ResponseEntity.ok("Email verified successfully");
     }
 
-    // ---------------- Login (Credentials) ----------------
+    // Login 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         User user = authService.getUserByEmail(request.getEmail());
@@ -77,7 +77,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // ---------------- Enable 2FA ----------------
+    // Enable 2FA 
     @PostMapping("/enable-2fa")
     public ResponseEntity<String> enable2FA(@RequestBody EmailRequest request) {
         User user = authService.getUserByEmail(request.getEmail());
@@ -92,7 +92,7 @@ public class AuthController {
         return ResponseEntity.ok("2FA already enabled for this user");
     }
 
-    // ---------------- Verify 2FA ----------------
+    // Verify 2FA 
     @PostMapping("/verify-2fa")
     public ResponseEntity<AuthResponse> verify2FA(@RequestBody Verify2FARequest request) {
         User user = authService.getUserByEmail(request.getEmail());
@@ -117,14 +117,14 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // ---------------- Refresh Token ----------------
+    // Refresh Token
     @PostMapping("/refresh-token")
     public ResponseEntity<AuthResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
         AuthResponse response = authService.refreshToken(request.getRefreshToken());
         return ResponseEntity.ok(response);
     }
 
-    // ---------------- Logout ----------------
+    // Logout
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader,
                                     @RequestBody(required = false) Verify2FARequest request) {
@@ -133,7 +133,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing or invalid Authorization header");
         }
 
-        String token = authHeader.substring(7); // Extract JWT
+        String token = authHeader.substring(7); 
         User user = authService.getCurrentUserFromToken(token);
 
         if (user == null) {
@@ -156,11 +156,10 @@ public class AuthController {
             }
         }
 
-        authService.logout(user, token); // Pass token to blacklist
+        authService.logout(user, token); 
         return ResponseEntity.ok("Logged out successfully");
     }
 
-    // ---------------- Test Email Sending ----------------
     @PostMapping("/send-test-email")
     public ResponseEntity<String> sendTestEmail(@RequestBody EmailRequest request) {
         User user = authService.getUserByEmail(request.getEmail());
@@ -173,21 +172,20 @@ public class AuthController {
         return ResponseEntity.ok("Test verification email sent");
     }
 
-    // ---------------- Forgot Password ----------------
+    // Forgot Password
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestBody EmailRequest request) {
         passwordService.initiateForgotPassword(request.getEmail());
         return ResponseEntity.ok("Password reset link has been sent to your email");
     }
 
-    // ---------------- Reset Password ----------------
+    // Reset Password
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
         passwordService.resetPassword(request.getToken(), request.getNewPassword());
         return ResponseEntity.ok("Password has been reset successfully");
     }
 
-    // ---------------- Generate TOTP from secret key ----------------
     @PostMapping("/generate-totp")
     public ResponseEntity<String> generateTOTP(@RequestBody SecretKeyRequest request) {
         try {

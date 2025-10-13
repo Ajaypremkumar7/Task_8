@@ -22,7 +22,7 @@ public class TwoFactorAuthService {
     private final TimeBasedOneTimePasswordGenerator totp = new TimeBasedOneTimePasswordGenerator();
     private final Base32 base32 = new Base32();
 
-    // ---------------- Generate secret key and save in DB ----------------
+    // Generate secret key 
     public String generateAndSaveSecretKey(User user) {
         return twoFactorAuthRepository.findByUser(user).map(existing -> {
             if (!existing.isEnabled()) {
@@ -51,7 +51,7 @@ public class TwoFactorAuthService {
         });
     }
 
-    // ---------------- Verify user-provided code ----------------
+    // Verify by Authenticator Code
     public boolean verifyCode(User user, String codeStr) {
         return twoFactorAuthRepository.findByUser(user).map(twoFactor -> {
             try {
@@ -67,7 +67,6 @@ public class TwoFactorAuthService {
         }).orElse(false);
     }
 
-    // ---------------- Generate current TOTP ----------------
     public int generateTOTPCode(SecretKey key) {
         try {
             return totp.generateOneTimePassword(key, Instant.now());
@@ -76,7 +75,7 @@ public class TwoFactorAuthService {
         }
     }
 
-    // ---------------- Get secret key as SecretKey object ----------------
+    // Secret key as Object
     public SecretKey getSecretKey(User user) {
         return twoFactorAuthRepository.findByUser(user)
                 .map(twoFactor -> {
